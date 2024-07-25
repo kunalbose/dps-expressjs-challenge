@@ -89,4 +89,35 @@ router.delete('/:id', (req: Request, res: Response) => {
 	}
 });
 
+// delete all reports of a given project
+router.delete('/:id/reports', (req: Request, res: Response) => {
+	try {
+		const id = req.params.id;
+		const projectSql = 'Select * from projects where id=${id}';
+		const projects = services.query(projectSql);
+		if (projects.length === 0) {
+			return res
+				.status(404)
+				.json({ error: 'No project with that id found' });
+		}
+
+		const sql = 'Delete from reports where projectid=@projectid';
+		const params = { projectid: id };
+		const deleteReports = services.run(sql, params);
+		if (deleteReports.changes > 0) {
+			return res
+				.status(200)
+				.json({ result: 'Reports deleted successfully' });
+		} else {
+			return res
+				.status(404)
+				.json({ error: 'No report found for that project id.' });
+		}
+	} catch (err) {
+		return res
+			.status(400)
+			.json({ error: 'Error while deleting all reports of project' });
+	}
+});
+
 export { router };
